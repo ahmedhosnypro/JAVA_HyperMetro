@@ -3,17 +3,17 @@ hyperskill_project:
   ide_files: https://stepik.org/media/attachments/lesson/388955/additional_files.json
   is_template_based: false
   use_ide: true
-update_date: Sun, 03 Apr 2022 14:02:27 UTC
+update_date: Wed, 06 Apr 2022 21:13:44 UTC
 stages:
 - id: 648
   step: 10341
   is_completed: true
 - id: 649
   step: 10342
-  is_completed: false
+  is_completed: true
 - id: 650
   step: 10343
-  is_completed: false
+  is_completed: true
 - id: 651
   step: 10344
   is_completed: false
@@ -131,6 +131,8 @@ topics:
     theory_id: 8977
   - title: Parameters and options
     theory_id: 9746
+  - title: Running programs on your computer
+    theory_id: 3746
   - title: Files
     theory_id: 3635
   - title: Reading files
@@ -159,8 +161,6 @@ topics:
     theory_id: 3492
   - title: Generics and Object
     theory_id: 3493
-  - title: Running programs on your computer
-    theory_id: 3746
   - title: What are collections
     theory_id: 3770
   - title: The Collections Framework overview
@@ -204,6 +204,10 @@ topics:
     theory_id: 5544
   - title: Binary arithmetic
     theory_id: 5630
+  - title: Reflection basics
+    theory_id: 3609
+  - title: Retrieving Class instances
+    theory_id: 3554
   - title: Formatted output
     theory_id: 7046
   - title: Writing files
@@ -232,10 +236,6 @@ topics:
     theory_id: 3712
   - title: Match results
     theory_id: 3716
-  - title: Reflection basics
-    theory_id: 3609
-  - title: Retrieving Class instances
-    theory_id: 3554
   - title: Dealing with modifiers
     theory_id: 8104
   - title: Manipulating fields and methods

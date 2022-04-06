@@ -8,11 +8,43 @@
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleHome" value="$PROJECT_DIR$/../../../../8-Programming/sdks/gradle/gradle-7.4" />
         <option name="gradleJvm" value="#JAVA_INTERNAL" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/HyperMetro/task" />
+            <option value="$PROJECT_DIR$/HyperMetro/task/build/classes/java" />
+            <option value="$PROJECT_DIR$/HyperMetro/task/build/generated/sources/annotationProcessor/java" />
+            <option value="$PROJECT_DIR$/HyperMetro/task/build/generated/sources/headers/java" />
+            <option value="$PROJECT_DIR$/HyperMetro/task/build/reports/tests" />
+            <option value="$PROJECT_DIR$/HyperMetro/task/build/test-results" />
+            <option value="$PROJECT_DIR$/HyperMetro/task/build/tmp" />
+            <option value="$PROJECT_DIR$/Topics/Dealing with modifiers/Count public methods" />
+            <option value="$PROJECT_DIR$/Topics/Dealing with modifiers/List private fields" />
+            <option value="$PROJECT_DIR$/Topics/Dealing with modifiers/List public fields" />
+            <option value="$PROJECT_DIR$/Topics/Dealing with modifiers/Storing modifiers" />
+            <option value="$PROJECT_DIR$/Topics/Dealing with modifiers/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Generic methods/Class type parameters" />
+            <option value="$PROJECT_DIR$/Topics/Generic methods/Declaring a method" />
+            <option value="$PROJECT_DIR$/Topics/Generic methods/How to declare a generic method" />
+            <option value="$PROJECT_DIR$/Topics/Generic methods/Methods" />
+            <option value="$PROJECT_DIR$/Topics/Generic methods/The first element" />
+            <option value="$PROJECT_DIR$/Topics/Generic methods/The usage of parameters" />
+            <option value="$PROJECT_DIR$/Topics/Generic methods/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Manipulating fields and methods/Assign a new value to a field" />
+            <option value="$PROJECT_DIR$/Topics/Manipulating fields and methods/Field value" />
+            <option value="$PROJECT_DIR$/Topics/Manipulating fields and methods/Method invocation" />
+            <option value="$PROJECT_DIR$/Topics/Manipulating fields and methods/Reflection invocation" />
+            <option value="$PROJECT_DIR$/Topics/Manipulating fields and methods/The result of the code execution" />
+            <option value="$PROJECT_DIR$/Topics/Manipulating fields and methods/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Retrieving Class instances/Class object test" />
+            <option value="$PROJECT_DIR$/Topics/Retrieving Class instances/Retrieve class name" />
+            <option value="$PROJECT_DIR$/Topics/Retrieving Class instances/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Retrieving Class instances/getClass method" />
+            <option value="$PROJECT_DIR$/Topics/Retrieving Class instances/myClass variable" />
+            <option value="$PROJECT_DIR$/Topics/Serialization basics/Serializable user" />
+            <option value="$PROJECT_DIR$/Topics/Serialization basics/Theory" />
             <option value="$PROJECT_DIR$/util" />
           </set>
         </option>

@@ -4,19 +4,17 @@ import org.hyperskill.hstest.stage.StageTest;
 import org.hyperskill.hstest.testcase.CheckResult;
 import org.hyperskill.hstest.testing.TestedProgram;
 
-
 public class Tests extends StageTest<String> {
-    // testing a case from example
+    // test from the previous stage with one line
     @DynamicTest(order = 1)
     CheckResult test1() {
 
         TestedProgram main = new TestedProgram();
-
-        String output = main.start("./test/baltimore.txt").trim();
+        main.start("./test/baltimore.json");
+        String output = main.execute("/output \"SubwayLink\"").trim();
 
         checkDepots(output);
-        checkOutputLength(output, 14);
-
+        checkOutputLength(output, 16);
         assertStations(output, new String[]{"Owings Mills", "Old Court", "Milford Mill", "Reiserstown Plaza",
             "Rogers Avenue", "West Cold Spring", "Mondawmin", "Penn North", "Uptown", "State Center",
             "Lexington Market", "Charles Center", "Shot Tower/Market Place", "Johns Hopkins Hospital"});
@@ -24,50 +22,124 @@ public class Tests extends StageTest<String> {
         return CheckResult.correct();
     }
 
-    // empty file test
+    // test of example
     @DynamicTest(order = 2)
     CheckResult test2() {
 
         TestedProgram main = new TestedProgram();
+        main.start("./test/lausanne.json");
+        String output = main.execute("/output \"m1\"").trim();
 
-        String output = main.start("./test/empty.txt");
-        if (output.trim().length() != 0) {
-            return CheckResult.wrong("Your program should not print anything if the file is empty.");
-        }
+        checkDepots(output);
+        checkOutputLength(output, 17);
+        assertStations(output, new String[]{"Renes—Gare", "Epenex", "Crochy", "Cerisaie",
+            "Bassenges", "EPFL", "UNL—Sorge", "Mouline", "UNL—Chemberonne", "Bourdonnette", "Melley",
+            "Provence", "Montelly", "Vigie", "Lausanne—Flon"});
+
+        output = main.execute("/output \"m2\"");
+        checkDepots(output);
+        checkOutputLength(output, 16);
+        assertStations(output, new String[]{"Croisettes", "Vennes", "Fourmi", "Sallaz", "CHUV", "Ours",
+            "Riponne M.Bejart", "Bessieres", "Lausanne—Flon", "Lausanne Gare CFF", "Grancy", "Delices", "Jourdils",
+            "Ouchy—Olympique"});
+
+        return CheckResult.correct();
+    }
+
+    // example test pt.2 (with addition)
+    @DynamicTest(order = 3)
+    CheckResult test2_1() {
+
+        TestedProgram main = new TestedProgram();
+        main.start("./test/lausanne.json");
+
+        // added a station to the end of the line
+        main.execute("/append \"m1\" \"Test station 1\"");
+        String output = main.execute("/output \"m1\"");
+
+        checkDepots(output);
+        checkOutputLength(output, 18);
+        assertStations(output, new String[]{"Renes—Gare", "Epenex", "Crochy", "Cerisaie",
+            "Bassenges", "EPFL", "UNL—Sorge", "Mouline", "UNL—Chemberonne", "Bourdonnette", "Melley",
+            "Provence", "Montelly", "Vigie", "Lausanne—Flon", "Test station 1"});
+
+        // added another one
+        main.execute("/append \"m1\" \"Test station 2\"");
+        output = main.execute("/output \"m1\"");
+
+        checkDepots(output);
+        checkOutputLength(output, 19);
+        assertStations(output, new String[]{"Renes—Gare", "Epenex", "Crochy", "Cerisaie",
+            "Bassenges", "EPFL", "UNL—Sorge", "Mouline", "UNL—Chemberonne", "Bourdonnette", "Melley",
+            "Provence", "Montelly", "Vigie", "Lausanne—Flon", "Test station 1", "Test station 2"});
+
+        // added one station to the beginning of the line
+        main.execute("/add-head \"m1\" \"Head\"");
+        output = main.execute("/output \"m1\"");
+
+        checkDepots(output);
+        checkOutputLength(output, 20);
+        assertStations(output, new String[]{"Head", "Renes—Gare", "Epenex", "Crochy", "Cerisaie",
+            "Bassenges", "EPFL", "UNL—Sorge", "Mouline", "UNL—Chemberonne", "Bourdonnette", "Melley",
+            "Provence", "Montelly", "Vigie", "Lausanne—Flon", "Test station 1", "Test station 2"});
 
         return CheckResult.correct();
     }
 
     // not existing file check
-    @DynamicTest(order = 3)
-    CheckResult test3() {
+    @DynamicTest(order = 4)
+    CheckResult test4() {
+        TestedProgram main = new TestedProgram();
+        String output = main.start("tHiS_fIlE_DoEs_nOt_ExIsT.txt");
+        if (output.trim().length() == 0) {
+            return CheckResult.wrong("The program did not print anything when the file was not exist. ");
+        }
+        if (output.toLowerCase().startsWith("depot") || output.toLowerCase().endsWith("depot")) {
+            return CheckResult.wrong("It looks like the program did not print an error message when the file was not exist.");
+        }
+        return CheckResult.correct();
+    }
+
+    // test of a case from the example
+    @DynamicTest(order = 5)
+    CheckResult test5() {
 
         TestedProgram main = new TestedProgram();
-        String output = main.start("tHiS_fIlE_DoEs_nOt_ExIsT.txt").toLowerCase();
+        main.start("./test/prague.json");
 
-        if (output.trim().length() == 0) {
-            return CheckResult.wrong("The program did not print anything when the file that doesn't exist was passed.");
-        }
-        if (output.startsWith("depot") || output.endsWith("depot") || !output.contains("error")) {
-            return CheckResult.wrong("It looks like the program did not print an error message when the file that doesn't exist was passed.\n" +
-                "Your output should contain 'error'.");
-        }
+        String[][] stations = new String[][]{
+            {"Nemocnice Motol", null}, {"Petriny", null}, {"Nadrazi Veleslavin", null}, {"Borislavka", null},
+            {"Dejvicka", null}, {"Hradcanska", null}, {"Malostranska", null}, {"Staromestska", null},
+            {"Mustek", "Linka B"}, {"Muzeum", "Linka C"}, {"Namesti Miru", null}, {"Jiriho z Podebrad", null},
+            {"Flora", null}, {"Zelivskeho", null}, {"Strasnicka", null}, {"Skalka", null}, {"Depo Hostivar", null}
+        };
+
+        String output = main.execute("/output \"Linka A\"");
+        checkDepots(output);
+        checkOutputLength(output, 19);
+        assertWithTransfer(output, stations);
 
         return CheckResult.correct();
     }
 
-    // positive test with another metro
-    @DynamicTest(order = 4)
-    CheckResult test4() {
+    @DynamicTest(order = 6)
+    CheckResult test6() {
 
         TestedProgram main = new TestedProgram();
-        String output = main.start("./test/samara.txt").trim();
+        main.start("./test/prague.json");
 
+        String[][] stations = new String[][]{{"Nemocnice Motol", null}, {"Petriny", "Linka C"},
+            {"Nadrazi Veleslavin", null}, {"Borislavka", null}, {"Dejvicka", null}, {"Hradcanska", null},
+            {"Malostranska", null}, {"Staromestska", null}, {"Mustek", "Linka B"}, {"Muzeum", "Linka C"},
+            {"Namesti Miru", null}, {"Jiriho z Podebrad", null}, {"Flora", null}, {"Zelivskeho", null},
+            {"Strasnicka", null}, {"Skalka", null}, {"Depo Hostivar", null}};
+
+        main.execute("/connect \"Linka C\" \"I.P.Pavlova\" \"Linka A\" \"Petriny\"");
+
+        String output = main.execute("/output \"Linka A\"");
         checkDepots(output);
-        checkOutputLength(output, 10);
-
-        assertStations(output, new String[]{"Alabinskaya", "Rossiyskaya", "Moskovskaya", "Gagarinskaya",
-            "Sportivnaya", "Sovetskaya", "Pobeda", "Bezymyanka", "Kirovskaya", "Yungorodok"});
+        checkOutputLength(output, 19);
+        assertWithTransfer(output, stations);
 
         return CheckResult.correct();
     }
@@ -81,7 +153,6 @@ public class Tests extends StageTest<String> {
             throw new WrongAnswer("Your output should end with 'depot'.");
         }
     }
-
 
     // checks number of stations in output
     void checkOutputLength(String output, int correctLength) {
@@ -99,34 +170,27 @@ public class Tests extends StageTest<String> {
         String[] sOutput = output.trim().split("\n");
 
         for (int i = 0; i < stations.length; i++) {
-
-            String currentLine = sOutput[i].trim();
-            if (currentLine.split("-").length != 3) {
-                throw new WrongAnswer("There is should be 3 stations in one line.\n" +
-                    "Treat 'depot' as a station name");
+            if (!sOutput[i + 1].equals(stations[i])) {
+                throw new WrongAnswer("Can't find station '" + stations[i] + "' in the line number " + (i + 2));
             }
+        }
+    }
 
-            // Checking the first line
-            if (i == 0) {
-                for (int j = 0; j < 2; j++) {
-                    if (!currentLine.contains(stations[i + j])) {
-                        throw new WrongAnswer("Can't find station '" + stations[i + j] + "' in the line number " + (i + 1));
-                    }
+    void assertWithTransfer(String output, String[][] stations) {
+
+        String[] sOutput = output.split("\n");
+
+        for (int i = 0; i < stations.length; i++) {
+            String currentLine = sOutput[i + 1].toLowerCase().trim();
+            String currentStation = stations[i][0];
+            String currentTransfer = stations[i][1];
+            if (currentTransfer == null) {
+                if (!currentLine.equals(currentStation.toLowerCase())) {
+                    throw new WrongAnswer("There is an error in your program's reply. Some stations were not found.");
                 }
-                // Checking the last line
-            } else if (i == stations.length - 1) {
-                for (int j = 0; j < 2; j++) {
-                    if (!currentLine.contains(stations[i + j - 1])) {
-                        throw new WrongAnswer("Can't find station '" + stations[i + j - 1] + "' in the line number " + (i + 1));
-                    }
-                }
-                // Checking the rest lines
-            } else {
-                for (int j = 0; j < 3; j++) {
-                    if (!currentLine.contains(stations[i + j - 1])) {
-                        throw new WrongAnswer("Can't find station '" + stations[i + j - 1] + "' in the line number " + (i + 1));
-                    }
-                }
+            } else if (!currentLine.contains(currentStation.toLowerCase()) ||
+                !currentLine.contains(currentTransfer.toLowerCase())) {
+                throw new WrongAnswer("Expected transfer to '" + currentTransfer + "' from '" + currentStation + "' station.");
             }
         }
     }
