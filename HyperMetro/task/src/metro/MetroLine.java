@@ -40,4 +40,13 @@ public class MetroLine {
         }
         return null;
     }
+
+    Station getStationByPosition(int position) {
+        for (var s : stations) {
+            if (s.getPosition() == position) {
+                return s;
+            }
+        }
+        return null;
+    }
 }

@@ -32,6 +32,10 @@ public class App {
             metroSystem.outputLine(inputArgs);
         } else if (inputArgs.contains("/connect") && inputArgs.size() == 5) {
             metroSystem.connectStations(inputArgs);
+        } else if ((inputArgs.contains("/route") || inputArgs.contains("/fastest-route")) && inputArgs.size() == 5) {
+            StringBuilder input = new StringBuilder();
+            inputArgs.forEach(a -> input.append(a).append(" "));
+            metroSystem.routes(input.toString());
         } else if (inputArgs.contains("/exit") && inputArgs.size() == 1) {
             exit();
         } else {

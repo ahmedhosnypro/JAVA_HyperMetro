@@ -723,6 +723,550 @@ files:
       }
     }
   learner_created: false
+- name: src/metro/ArgumentTokenizer.java
+  visible: true
+  text: |-
+    package metro;
+
+    import java.util.LinkedList;
+    import java.util.List;
+
+    abstract class ArgumentTokenizer {
+        private static final int NO_TOKEN_STATE = 0;
+        private static final int NORMAL_TOKEN_STATE = 1;
+        private static final int SINGLE_QUOTE_STATE = 2;
+        private static final int DOUBLE_QUOTE_STATE = 3;
+
+        private ArgumentTokenizer() {
+        }
+
+        /**
+         * Tokenizes the given String into String tokens
+         *
+         * @param arguments A String containing one or more command-line style arguments to be tokenized.
+         * @return A list of parsed and properly escaped arguments.
+         */
+        public static List<String> tokenize(String arguments) {
+            return tokenize(arguments, false);
+        }
+
+        /**
+         * Tokenizes the given String into String tokens.
+         *
+         * @param arguments A String containing one or more command-line style arguments to be tokenized.
+         * @param stringify whether to include escape special characters
+         * @return A list of parsed and properly escaped arguments.
+         */
+        public static List<String> tokenize(String arguments, boolean stringify) {
+
+            LinkedList<String> argList = new LinkedList<>();
+            StringBuilder currArg = new StringBuilder();
+            boolean escaped = false;
+            int state = NO_TOKEN_STATE;  // start in the NO_TOKEN_STATE
+            int len = arguments.length();
+
+            // Loop over each character in the string
+            for (int i = 0; i < len; i++) {
+                char c = arguments.charAt(i);
+                if (escaped) {
+                    // Escaped state: just append the next character to the current arg.
+                    escaped = false;
+                    currArg.append(c);
+                } else {
+                    switch (state) {
+                        case SINGLE_QUOTE_STATE:
+                            if (c == '\'') {
+                                // Seen the close quote; continue this arg until whitespace is seen
+                                state = NORMAL_TOKEN_STATE;
+                            } else {
+                                currArg.append(c);
+                            }
+                            break;
+                        case DOUBLE_QUOTE_STATE:
+                            if (c == '"') {
+                                // Seen the close quote; continue this arg until whitespace is seen
+                                state = NORMAL_TOKEN_STATE;
+                            } else if (c == '\\') {
+                                // Look ahead, and only escape quotes or backslashes
+                                i++;
+                                char next = arguments.charAt(i);
+                                if (next == '"' || next == '\\') {
+                                    currArg.append(next);
+                                } else {
+                                    currArg.append(c);
+                                    currArg.append(next);
+                                }
+                            } else {
+                                currArg.append(c);
+                            }
+                            break;
+
+                        case NO_TOKEN_STATE:
+                        case NORMAL_TOKEN_STATE:
+                            switch (c) {
+                                case '\\':
+                                    escaped = true;
+                                    state = NORMAL_TOKEN_STATE;
+                                    break;
+                                case '\'':
+                                    state = SINGLE_QUOTE_STATE;
+                                    break;
+                                case '"':
+                                    state = DOUBLE_QUOTE_STATE;
+                                    break;
+                                default:
+                                    if (!Character.isWhitespace(c)) {
+                                        currArg.append(c);
+                                        state = NORMAL_TOKEN_STATE;
+                                    } else if (state == NORMAL_TOKEN_STATE) {
+                                        // Whitespace ends the token; start a new one
+                                        argList.add(currArg.toString());
+                                        currArg = new StringBuilder();
+                                        state = NO_TOKEN_STATE;
+                                    }
+                            }
+                            break;
+                        default:
+                            throw new IllegalStateException("ArgumentTokenizer state " + state + " is invalid!");
+                    }
+                }
+            }
+
+            // If we're still escaped, put in the backslash
+            if (escaped) {
+                currArg.append('\\');
+                argList.add(currArg.toString());
+            }
+            // Close the last argument if we haven't yet
+            else if (state != NO_TOKEN_STATE) {
+                argList.add(currArg.toString());
+            }
+            // Format each argument if we've been told to stringify them
+            if (stringify) {
+                for (int i = 0; i < argList.size(); i++) {
+                    argList.set(i, "\"" + escapeQuotesAndBackslashes(argList.get(i)) + "\"");
+                }
+            }
+            return argList;
+        }
+
+        /**
+         * Inserts backslashes before any occurrences of a backslash or
+         * quote in the given string.  Also converts any special characters
+         * appropriately.
+         */
+        protected static String escapeQuotesAndBackslashes(String s) {
+            final StringBuilder buf = new StringBuilder(s);
+
+            // Walk backwards, looking for quotes or backslashes.
+            //  If we see any, insert an extra backslash into the buffer at
+            //  the same index.  (By walking backwards, the index into the buffer
+            //  will remain correct as we change the buffer.)
+            for (int i = s.length() - 1; i >= 0; i--) {
+                char c = s.charAt(i);
+                if ((c == '\\') || (c == '"')) {
+                    buf.insert(i, '\\');
+                }
+                // Replace any special characters with escaped versions
+                else if (c == '\n') {
+                    buf.deleteCharAt(i);
+                    buf.insert(i, "\\n");
+                } else if (c == '\t') {
+                    buf.deleteCharAt(i);
+                    buf.insert(i, "\\t");
+                } else if (c == '\r') {
+                    buf.deleteCharAt(i);
+                    buf.insert(i, "\\r");
+                } else if (c == '\b') {
+                    buf.deleteCharAt(i);
+                    buf.insert(i, "\\b");
+                } else if (c == '\f') {
+                    buf.deleteCharAt(i);
+                    buf.insert(i, "\\f");
+                }
+            }
+            return buf.toString();
+        }
+    }
+  learner_created: true
+- name: src/metro/MetroSystem.java
+  visible: true
+  text: |
+    package metro;
+
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.Objects;
+
+    public class MetroSystem {
+        private final ArrayList<MetroLine> lines = new ArrayList<>();
+
+        public ArrayList<MetroLine> getLines() {
+            return lines;
+        }
+
+
+        void appendStation(List<String> inputArgs) {
+
+            if (containsLine(inputArgs.get(1))) {
+                for (var line : lines) {
+                    if (line.getName().equals(inputArgs.get(1))) {
+                        line.getStations().addLast(new Station(inputArgs.get(2)));
+                        break;
+                    }
+                }
+            }
+        }
+
+        void addHeadStation(List<String> inputArgs) {
+            if (containsLine(inputArgs.get(1))) {
+                for (var line : lines) {
+                    if (line.getName().equals(inputArgs.get(1))) {
+                        line.getStations().addFirst(new Station(inputArgs.get(2)));
+                        break;
+                    }
+                }
+            }
+        }
+
+        void removeStation(List<String> inputArgs) {
+            if (containsLine(inputArgs.get(1))) {
+                for (var line : lines) {
+                    if (line.getName().equals(inputArgs.get(1))) {
+                        line.getStations().removeIf(s -> s.getName().equals(inputArgs.get(2)));
+                    }
+                }
+            }
+        }
+
+        void outputLine(List<String> inputArgs) {
+            if (containsLine(inputArgs.get(1))) {
+                var line = lines.stream().filter(l -> l.getName().equals(inputArgs.get(1))).findAny();
+                line.ifPresent(MetroLine::printStations);
+            }
+        }
+
+        void connectStations(List<String> inputArgs) {
+            if (containsLine(inputArgs.get(1)) && containsLine(inputArgs.get(3))
+                    && containsStation(inputArgs.get(1), inputArgs.get(2))
+                    && containsStation(inputArgs.get(3), inputArgs.get(4))) {
+                Objects.requireNonNull(getLineByName(inputArgs.get(1))).getStationByName(inputArgs.get(2))
+                        .getTransfer().add(new Connection(inputArgs.get(3), inputArgs.get(4)));
+                Objects.requireNonNull(getLineByName(inputArgs.get(3))).getStationByName(inputArgs.get(4))
+                        .getTransfer().add(new Connection(inputArgs.get(1), inputArgs.get(2)));
+            }
+        }
+
+        private boolean containsStation(String line, String station) {
+            for (var l : lines) {
+                if (l.getName().equals(line)) {
+                    for (var s : l.getStations()) {
+                        if (s.getName().equals(station)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private boolean containsLine(String line) {
+            return lines.stream().anyMatch(l -> l.getName().equals(line));
+        }
+
+        private MetroLine getLineByName(String line) {
+            for (var l : lines) {
+                if (l.getName().equals(line)) {
+                    return l;
+                }
+            }
+            return null;
+        }
+
+
+    }
+  learner_created: true
+- name: src/metro/JsonMetroParser.java
+  visible: true
+  text: |
+    package metro;
+
+    import com.google.gson.JsonElement;
+    import com.google.gson.JsonObject;
+    import com.google.gson.JsonParser;
+    import com.google.gson.Gson;
+
+    import java.io.File;
+    import java.io.Reader;
+    import java.nio.charset.StandardCharsets;
+    import java.nio.file.Files;
+    import java.nio.file.Path;
+    import java.nio.file.Paths;
+
+    public class JsonMetroParser {
+
+        private JsonMetroParser() {
+        }
+
+        public static MetroSystem parseJsonMetroSystem(String fileName) {
+
+            Gson gson = new Gson();
+            MetroSystem metroSystem = new MetroSystem();
+            File file = new File(fileName);
+            if (file.exists()) {
+                Path path = Paths.get(fileName);
+                try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+
+                    JsonElement jsonElement = JsonParser.parseReader(reader);
+
+                    JsonObject jsonObject = jsonElement.getAsJsonObject();
+
+                    for (var line : jsonObject.entrySet()) {
+                        MetroLine metroLine = new MetroLine(line.getKey());
+                        for (var stations : line.getValue().getAsJsonObject().keySet()) {
+                            metroLine.addStation(gson.fromJson(line.getValue().getAsJsonObject().get(stations)
+                                    .getAsJsonObject().toString(), Station.class));
+                        }
+                        metroSystem.getLines().add(metroLine);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Incorrect File");
+                }
+            } else {
+                System.out.println("Error! Such a file doesn't exist!");
+                return null;
+            }
+            return metroSystem;
+        }
+    }
+  learner_created: true
+- name: src/metro/MetroLine.java
+  visible: true
+  text: |
+    package metro;
+
+    import java.util.LinkedList;
+
+    public class MetroLine {
+        private final String name;
+        private final LinkedList<Station> stations = new LinkedList<>();
+
+        public MetroLine(String name) {
+            this.name = name;
+        }
+
+        public LinkedList<Station> getStations() {
+            return stations;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        void printStations() {
+
+            final String depot = "depot";
+            System.out.println(depot);
+            for (var station : stations) {
+                System.out.println(station.toString());
+            }
+            System.out.println(depot);
+        }
+
+        public void addStation(Station station) {
+            stations.add(station);
+        }
+
+        Station getStationByName(String station) {
+            for (var s : stations) {
+                if (s.getName().equals(station)) {
+                    return s;
+                }
+            }
+            return null;
+        }
+    }
+  learner_created: true
+- name: src/metro/lines.json
+  visible: true
+  text: |-
+    {
+      "Metro-Railway": {
+        "3": {
+          "name": "Baker street",
+          "transfer": [
+            {
+              "line": "Hammersmith-and-City",
+              "station": "Baker street"
+            }
+          ]
+        },
+        "1": {
+          "name": "Bishops-road",
+          "transfer": []
+        },
+        "2": {
+          "name": "Edgver road",
+          "transfer": []
+        }
+      },
+      "Hammersmith-and-City": {
+        "2": {
+          "name": "Westbourne-park",
+          "transfer": []
+        },
+        "1": {
+          "name": "Hammersmith",
+          "transfer": []
+        },
+        "3": {
+          "name": "Baker street",
+          "transfer": [
+            {
+              "line": "Metro-Railway",
+              "station": "Baker street"
+            }
+          ]
+        }
+      }
+    }
+  learner_created: true
+- name: src/metro/Station.java
+  visible: true
+  text: |
+    package metro;
+
+    import java.util.ArrayList;
+    import java.util.Objects;
+
+    public class Station {
+        private String name;
+        private ArrayList<Connection> transfer;
+
+        public Station(String name, ArrayList<Connection> connections) {
+            this.name = name;
+            this.transfer = connections;
+        }
+
+        public Station(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public ArrayList<Connection> getTransfer() {
+            return transfer;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public void setTransfer(ArrayList<Connection> transfer) {
+            this.transfer = transfer;
+        }
+
+        @Override
+        public String toString() {
+            final String separator = " - ";
+            if (Objects.isNull(transfer) || transfer.isEmpty()) {
+                return name;
+            } else {
+                return name + separator + transfer.get(0).getStation() + "(" + transfer.get(0).getLine() + " line)";
+            }
+        }
+    }
+  learner_created: true
+- name: src/metro/App.java
+  visible: true
+  text: |
+    package metro;
+
+    import java.util.List;
+    import java.util.Scanner;
+
+    import static metro.JsonMetroParser.parseJsonMetroSystem;
+
+    public class App {
+        private final Scanner scanner = new Scanner(System.in);
+        private MetroSystem metroSystem = new MetroSystem();
+
+        void start(String[] args) {
+            if (readStationsFromJson(args[0])) {
+                while (true) {
+                    String input = scanner.nextLine();
+                    var inputArgs = ArgumentTokenizer.tokenize(input);
+                    if (!inputArgs.isEmpty()) {
+                        runCommand(inputArgs);
+                    }
+                }
+            }
+        }
+
+        private void runCommand(List<String> inputArgs) {
+            if (inputArgs.contains("/append") && inputArgs.size() == 3) {
+                metroSystem.appendStation(inputArgs);
+            } else if (inputArgs.contains("/add-head") && inputArgs.size() == 3) {
+                metroSystem.addHeadStation(inputArgs);
+            } else if (inputArgs.contains("remove") && inputArgs.size() == 3) {
+                metroSystem.removeStation(inputArgs);
+            } else if (inputArgs.contains("/output") && inputArgs.size() == 2) {
+                metroSystem.outputLine(inputArgs);
+            } else if (inputArgs.contains("/connect") && inputArgs.size() == 5) {
+                metroSystem.connectStations(inputArgs);
+            } else if (inputArgs.contains("/exit") && inputArgs.size() == 1) {
+                exit();
+            } else {
+                System.out.println("Invalid command");
+            }
+        }
+
+        private boolean readStationsFromJson(String fileName) {
+            metroSystem = parseJsonMetroSystem(fileName);
+            return metroSystem != null;
+        }
+
+        private void exit() {
+            System.exit(0);
+        }
+    }
+  learner_created: true
+- name: src/metro/Connection.java
+  visible: true
+  text: |
+    package metro;
+
+    public class Connection {
+        private String line;
+        private String station;
+
+        public Connection(String line, String station) {
+            this.line = line;
+            this.station = station;
+        }
+
+        public String getLine() {
+            return line;
+        }
+
+        public String getStation() {
+            return station;
+        }
+
+        public void setLine(String line) {
+            this.line = line;
+        }
+
+        public void setStation(String station) {
+            this.station = station;
+        }
+    }
+  learner_created: true
+- name: src/metro/RouteFinder.java
+  visible: true
+  learner_created: true
 - name: test/baltimore.json
   visible: false
   text: |-
@@ -801,5 +1345,8 @@ files:
     }
   learner_created: false
 feedback_link: https://hyperskill.org/learn/step/10344#comment
-status: Unchecked
-record: -1
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Thu, 07 Apr 2022 12:25:41 UTC
+record: 4

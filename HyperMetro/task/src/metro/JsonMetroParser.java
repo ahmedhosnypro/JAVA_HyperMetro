@@ -32,9 +32,11 @@ public class JsonMetroParser {
 
                 for (var line : jsonObject.entrySet()) {
                     MetroLine metroLine = new MetroLine(line.getKey());
-                    for (var stations : line.getValue().getAsJsonObject().keySet()) {
-                        metroLine.addStation(gson.fromJson(line.getValue().getAsJsonObject().get(stations)
-                                .getAsJsonObject().toString(), Station.class));
+                    for (var station : line.getValue().getAsJsonObject().keySet()) {
+                        Station s = gson.fromJson(line.getValue().getAsJsonObject().get(station)
+                                .getAsJsonObject().toString(), Station.class);
+                        s.setPosition(Integer.parseInt(station));
+                        metroLine.addStation(s);
                     }
                     metroSystem.getLines().add(metroLine);
                 }
